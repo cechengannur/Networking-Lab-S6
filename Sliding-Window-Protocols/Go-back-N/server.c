@@ -1,3 +1,13 @@
+/*
+!important
+First compile server.c by gcc server.c -lm -o server
+run ./server 5400 in cmd
+Compile client.c by gcc client.c -o client
+run ./client 127.0.0.1 5400
+enter send.txt when enter file name to recieve is prompted
+*/
+
+
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
 #include <stdio.h> 
