@@ -1,150 +1,70 @@
-/*
-!important
-First compile server.c by gcc server.c -o server
-run ./server
-Compile client.c by gcc client.c -o client
-run ./client
-*/
-
+#include<time.h>
 #include<stdio.h>
-#include<string.h>
 #include<stdlib.h>
-#include<arpa/inet.h>
 #include<sys/socket.h>
-#include<sys/select.h>
+#include<sys/types.h>
+#include<netinet/in.h>
 #include<sys/time.h>
+#include<sys/wait.h>
+#include<string.h>
 #include<unistd.h>
+#include<arpa/inet.h> 
 
-#define MAXBUFLEN 10000
+int isfaulty(){		//simulating corruption of message
 
-#define PKT_SIZE 128
-#define PORT 8882
-#define TIMEOUT 2
+int d=rand()%4;
+//printf("%d\n",d);
+return (d>2);
 
-//Acknowledgement Packet
-typedef struct packet1{
-	int ack_no;
-}ACK_PKT;
-
-//Data Packet
-typedef struct packet2{
-	int packet_no;
-	int packet_size;
-	char data[PKT_SIZE];
-}DATA_PKT;
-
-void die(char *s){
-	perror(s);
-	exit(1);
 }
+int main() {
+	srand(time(0));
+	int c_sock;
+	c_sock = socket(AF_INET, SOCK_STREAM, 0);
+	struct sockaddr_in client;
+	memset(&client, 0, sizeof(client));
+	client.sin_family = AF_INET;
+	client.sin_port = htons(9009);
+	client.sin_addr.s_addr = inet_addr("127.0.0.1");
+	
 
-int main(){
-	struct sockaddr_in si_server;
-	fd_set readfds,masterfds;    	// To implement Timeout
-	int s, i , slen = sizeof(si_server),Window_Size,BASE = 0,ret;
-	DATA_PKT send_pkt;
-	ACK_PKT rcv_ack;
-	FD_ZERO(&masterfds);
-	FD_SET(s, &masterfds);
-	memcpy(&readfds,&masterfds,sizeof(fd_set));
-	if( (s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-		die("socket");
-	memset((char *)&si_server, 0 , sizeof(si_server));
-	si_server.sin_family = AF_INET;
-	si_server.sin_port = htons(PORT);
-	si_server.sin_addr.s_addr = inet_addr("127.0.0.1");
-	printf("Enter Window Size: ");
-	scanf("%d",&Window_Size);
-
-	if( sendto(s,&Window_Size, sizeof(int), 0, (struct sockaddr *) &si_server,slen) == -1){
-		die("send to()");
-	}		
-	char source[MAXBUFLEN + 1];   				//Buffer to send the data
-	int N;
-	//Load Buffer with File Data
-	FILE *fp = fopen("in.txt", "r");
-	if (fp != NULL){
-		size_t newLen = fread(source, sizeof(char), MAXBUFLEN, fp);
-		if ( ferror( fp ) != 0 ){
-			fputs("Error reading file", stderr);
-		}else{
-			source[newLen++] = '\0';
+	if(connect(c_sock, (struct sockaddr*)&client, sizeof(client)) == -1) {
+	printf("Connection failed");
+	return 0;
+	}
+	printf("\n\tClient -with individual acknowledgement scheme\n\n");
+	char msg1[50]="akwnowledgementof-";
+	char msg3[50]="negative akwn-";	
+	char msg2[50];
+	char buff[100];
+	int count=-1,flag=1;
+	while(count<8){
+		bzero(buff,sizeof(buff));
+		bzero(msg2,sizeof(msg2));
+       if(count==7&&flag==1){
+			//sleep(3);
+			printf("here\n");		//simulate loss
+            //i--;
+			flag=0;
+			read(c_sock,buff,sizeof(buff));
+			//printf("aa %s \n",buff);
+			continue;
+        }
+		int n = read(c_sock, buff, sizeof(buff));
+		char i=buff[strlen(buff)-1];
+		printf("Message received from server : %s \n",buff);
+        int isfault=isfaulty();
+		printf("correption status : %d \n",isfault);
+		printf("Response/akwn sent for message \n");
+		if(isfault)
+		strcpy(msg2,msg3);
+		else{
+		strcpy(msg2,msg1);
+		count++;}
+		msg2[strlen(msg2)]=i;
+		write(c_sock,msg2, sizeof(msg2)); 
 		}
-		printf("Message Size: %d\n",(int)newLen);
-		fclose(fp);
-		N = (newLen / PKT_SIZE) + 1; 			// Calculating number of Packets
-	}
-	printf("Number of Packet: %d\n",N);
-	if( sendto(s,&N, sizeof(int), 0, (struct sockaddr *) &si_server,slen) == -1){
-		die("send to()");
-	}
-	//Array to mark the Acknowledgement of Packets
-	int *send = calloc(N,sizeof(int)), state = 0, *fresh = calloc(N,sizeof(int));
-	for(int i = 0 ; i < N; i++)
-		fresh[i] = 1;
-	while(1){
-		if(BASE == N) break;
-		switch(state){
-
-		case 0: /* Packet Sending State */
-			for(int i = BASE ; i < BASE + Window_Size && i < N; i++){
-				send_pkt.packet_no = i;
-				strncpy(send_pkt.data,source+(PKT_SIZE * i),PKT_SIZE);  //Extract the chunk of string from buffer to send
-				send_pkt.packet_size = sizeof(send_pkt.data);
-				if(send[i] == 0 && fresh[i] == 1){			//Send only new packets
-					if( sendto(s,&send_pkt, sizeof(send_pkt), 0, (struct sockaddr *) &si_server,slen) == -1){
-						die("send to()");
-					}else{
-						fresh[i]--;				//Mark as not a new packet
-						printf("SEND PACKET %d : BASE %d\n",send_pkt.packet_no,BASE);
-					}
-				}
-			}
-			state = 1;
-			break;
-
-		case 1:	; /* Acknowledgement Receiving and Timeout State */
-			struct timeval tv;
-			tv.tv_sec = TIMEOUT;
-			tv.tv_usec = 0;
-			FD_ZERO(&masterfds);
-			FD_SET(s, &masterfds);
-			memcpy(&readfds,&masterfds,sizeof(fd_set));
-			if(ret = select(s+1, &readfds,NULL, NULL,&tv) < 0)
-				die("select()");
-
-			/* Acknowledgement can be received */
-			if(FD_ISSET(s, &readfds)){		
-				if ((recvfrom(s, &rcv_ack, sizeof(rcv_ack), 0, (struct sockaddr *) &si_server, &slen)) == -1){
-					die("recvfrom()");
-				}else{
-					send[rcv_ack.ack_no] = 1;
-					if(rcv_ack.ack_no == BASE){
-						while(send[BASE] == 1 && BASE < N)
-							BASE++;
-						state = 0;
-					}
-					printf("RECEIVE ACK %d : BASE %d\n",rcv_ack.ack_no,BASE);
-				}
-			}
-			/* Timeout Occured */
-			else{					
-				for(int i = BASE ; i < BASE + Window_Size && i < N; i++){
-					send_pkt.packet_no = i;
-					strncpy(send_pkt.data,source+(PKT_SIZE * i),PKT_SIZE);
-					//Resending The Packet Not Acknowledged
-					if(send[i] == 0){	
-						if( sendto(s,&send_pkt, sizeof(send_pkt), 0, (struct sockaddr *) &si_server,slen) == -1){
-							die("send to()");
-						}else{
-							printf("TIMEOUT %d\n",i);
-							printf("SEND PACKET %d : BASE %d\n",send_pkt.packet_no,BASE);
-						}
-				}
-			}
-				
-			}
-		}
-	}
-	close(s);	
+	
+	close(c_sock);
+	return 0;
 }

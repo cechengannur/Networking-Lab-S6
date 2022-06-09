@@ -1,124 +1,112 @@
-/*
-!important
-First compile server.c by gcc server.c -o server
-run ./server
-Compile client.c by gcc client.c -o client
-run ./client
-*/
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include<arpa/inet.h>
-#include<sys/socket.h>
-#include<sys/time.h>
-#include<time.h>
-#include<unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
 
-#define MAXBUFLEN 10000
-#define PKT_SIZE 128
-#define PORT 8882
-#define PDR 0.2
-
-void die(char *s)
+void rsendd(int ch, int c_sock)
 {
-	perror(s);
-	exit(1);
+    char buff2[60];
+    bzero(buff2, sizeof(buff2));
+    strcpy(buff2, "reserver message :");
+    buff2[strlen(buff2)] = (ch) + '0';
+    buff2[strlen(buff2)] = '\0';
+    printf("Resending Message to client :%s \n", buff2);
+    write(c_sock, buff2, sizeof(buff2));
+    usleep(1000);
 }
-//Acknowledgement Packet
-typedef struct packet1{
-	int ack_no;
-}ACK_PKT;
-
-//Data Packet
-typedef struct packet2{
-	int packet_no;
-	int packet_size;
-	char data[PKT_SIZE];
-}DATA_PKT;
 
 int main()
 {
-	struct sockaddr_in si_me, si_client;
-	int s, i, slen = sizeof(si_client) , recv_len, Window_Size,BASE = 0,N;
-	int mode = 0;
-	printf("Select Mode: \n");
-	printf("0 : Loss Less Scenario.\n");
-	printf("1 : Packet Loss Scenario.\n");
-	scanf("%d",&mode);
-	char dest[MAXBUFLEN];				//Buffer for Received Packets
-	DATA_PKT rcv_pkt;
-	ACK_PKT ack_pkt;
-	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
-		die("socket");
-	}
+    int s_sock, c_sock;
+    s_sock = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in server, other;
+    memset(&server, 0, sizeof(server));
+    memset(&other, 0, sizeof(other));
+    server.sin_family = AF_INET;
+    server.sin_port = htons(9009);
+    server.sin_addr.s_addr = INADDR_ANY;
+    socklen_t add;
 
-	memset((char *) &si_me, 0, sizeof(si_me));
-	si_me.sin_family = AF_INET;
-	si_me.sin_port = htons(PORT);
-	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
- 
-	if( bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1){
-		die("bind");
-	}
-	if ((recv_len = recvfrom(s, &Window_Size, sizeof(int), 0, (struct sockaddr *) &si_client, &slen)) == -1){
-		die("recvfrom()");
-	}
-	else{
-		printf("Received Window Size: %d\n",Window_Size);
-	}
-	if ((recv_len = recvfrom(s, &N, sizeof(int), 0, (struct sockaddr *) &si_client, &slen)) == -1){
-		die("recvfrom()");
-	}
-	else{
-		printf("Number of packets: %d\n",N);
-	}
-	int count = 0;
+    if (bind(s_sock, (struct sockaddr *)&server, sizeof(server)) == -1)
+    {
+        printf("Binding failed\n");
+        return 0;
+    }
 
-	/* Array to mark the received packets */
-	int *rcvd = calloc(N,sizeof(int));
-	while(1){
-		if(BASE == N) break;
-		for(int i = BASE ; i < BASE + Window_Size && i < N ; i++){
-			if(rcvd[i] == 0 ){
-				if ((recv_len = recvfrom(s, &rcv_pkt, sizeof(rcv_pkt), 0, (struct sockaddr *) &si_client, &slen)) == -1){
-					die("recvfrom()");
-				}else{	
-					srand48(time(NULL)+i);
-					if(mode == 1)				// To Decide the mode of implementation
-						if(drand48() < PDR){	// Drop packet with random value below PDR
-							printf("RECEIVE PACKET %d : DROP : BASE %d\n",rcv_pkt.packet_no,BASE);
-							continue;	
-						}				
-					//if(rcv_pkt.packet_no == 3 && count == 0){if(rcv_pkt.packet_no == 3) count++;continue;}
-					//if(rcv_pkt.packet_no == 11 && count == 1){if(rcv_pkt.packet_no == 11) count++;continue;}
-					printf("RECEIVE PACKET %d : ACCEPT : BASE %d\n",rcv_pkt.packet_no,BASE);
+    printf("\tServer Up\n Selective repeat scheme\n\n");
+    listen(s_sock, 10);
+    add = sizeof(other);
+    c_sock = accept(s_sock, (struct sockaddr *)&other, &add);
+    time_t t1, t2;
+    char msg[50] = "server message :";
+    char buff[50];
+    int flag = 0;
 
-					//Store the packet data in buffer.
-					for(int j = 0 ; j < PKT_SIZE; j++){
-						int position = i * PKT_SIZE + j;
-						dest[position] = rcv_pkt.data[j];
-					}
-					ack_pkt.ack_no = rcv_pkt.packet_no;
-					rcvd[rcv_pkt.packet_no] = 1;
-					sendto(s, &ack_pkt, sizeof(ack_pkt), 0, (struct sockaddr *) &si_client, slen);
-					printf("SEND ACK %d\n",ack_pkt.ack_no);
-					//printf("%s %d\n",rcv_pkt.data,rcv_pkt.packet_no);
-					if(rcv_pkt.packet_no == BASE){
-						while(rcvd[BASE] == 1 && BASE < N)
-							BASE++;			//Sliding the Window
-					}
-					if(BASE == N)
-						break;
-				}
-			}
-		}
-	}
-	//Buffer is stored in the file
-	FILE *file = fopen("out.txt","w");
-	int result = fputs(dest,file);
-	if(result == EOF)
-		die("fputs()");
-	fclose(file);
-	close(s);
-	return 0;
+    fd_set set1, set2, set3;
+    struct timeval timeout1, timeout2, timeout3;
+    int rv1, rv2, rv3;
+
+    int tot = 0;
+    int ok[20];
+    memset(ok, 0, sizeof(ok));
+
+    while (tot < 9)
+    {
+        int toti = tot;
+        for (int j = (0 + toti); j < (3 + toti); j++)
+        {
+            // printf("%d %d %d \n",tot,toti,j);
+            bzero(buff, sizeof(buff));
+            char buff2[60];
+            bzero(buff2, sizeof(buff2));
+            strcpy(buff2, "server message :");
+            buff2[strlen(buff2)] = (j) + '0';
+            buff2[strlen(buff2)] = '\0';
+            printf("Message sent to client :%s \n", buff2);
+            write(c_sock, buff2, sizeof(buff2));
+            usleep(1000);
+        }
+        for (int k = 0 + toti; k < (toti + 3); k++)
+        {
+        qq:
+            FD_ZERO(&set1);
+            FD_SET(c_sock, &set1);
+            timeout1.tv_sec = 2;
+            timeout1.tv_usec = 0;
+
+            rv1 = select(c_sock + 1, &set1, NULL, NULL, &timeout1);
+            if (rv1 == -1)
+                perror("select error ");
+            else if (rv1 == 0)
+            {
+                printf("Timeout for message :%d \n", k);
+                rsendd(k, c_sock);
+                goto qq;
+            } // a timeout occured
+            else
+            {
+                read(c_sock, buff, sizeof(buff));
+                printf("Message from Client: %s\n", buff);
+                if (buff[0] == 'n')
+                {
+                    printf(" corrupt message awk (msg %d) \n", buff[strlen(buff) - 1] - '0');
+                    rsendd((buff[strlen(buff) - 1] - '0'), c_sock);
+                    goto qq;
+                }
+                else
+                    tot++;
+                // printf("%d %d %d \n",tot,toti,k);
+            }
+        }
+    }
+
+    close(c_sock);
+    close(s_sock);
+    return 0;
 }
