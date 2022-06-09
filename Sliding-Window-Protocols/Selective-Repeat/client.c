@@ -1,3 +1,11 @@
+/*
+!important
+First compile server.c by gcc server.c -o server
+run ./server
+Compile client.c by gcc client.c -o client
+run ./client
+*/
+
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
