@@ -1,6 +1,6 @@
-<h1 align="center">Networking Lab | KTU</h1>
+<h1 align="center">CSL332 Networking Lab | KTU (2019 Scheme) </h1>
 <div align="center">
-  <p>This repository contains a collection of programs written as part of Networking Lab KTU</p>
+  <p>This repository contains a collection of programs written as part of KTU CSL332 Networking Lab </p>
 </div>
 <br>
 
@@ -12,4 +12,5 @@
  - [Stop & Wait Protocol](Sliding-Window-Protocols/Stop-N-Wait/)
  - [Go Back N Protocol](Sliding-Window-Protocols/Go-back-N/)
  - [Selective Repeat](Sliding-Window-Protocols/Selective-Repeat/)
- - [Concurrent Time Server Application](./Time-Server-Application/)
+ - [Concurrent Time Server Application (UDP)](./Time-Server-Application/)
+ - [Simple Mail Transfer Protocol](./SMTP/)
