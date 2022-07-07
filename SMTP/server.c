@@ -4,7 +4,7 @@
     Eg : ./server 6500
 
     Then compile client.c by gcc client.c -o client
-    run client by ./client <PORT NO.>
+    run client by ./client <IP Address> <PORT NO.>
     Eg : ./client 127.0.0.1 6500
 */
 
