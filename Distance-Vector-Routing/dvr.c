@@ -8,6 +8,7 @@ struct routers
     int adjNodes[20];
 } node[20];
 
+// function to read the cost matrix
 void readCostMatrix()
 {
     int i, j;
@@ -19,7 +20,7 @@ void readCostMatrix()
             scanf("%d", &costMatrix[i][j]);
             // distance from X to X is 0
             costMatrix[i][i] = 0;
-            node[i].distance[j] = costMatrix[i][j];
+            node[i].distance[j] = costMatrix[i][j]; 
             node[i].adjNodes[j] = j;
         }
     }
@@ -33,11 +34,13 @@ void calcRoutingTable()
         for (j = 0; j < n; ++j)
         {
             for (k = 0; k < n; ++k)
-            {
+            {   
+                // if the cost of the path from X to Y is less than the cost of the path from X to Z
                 if (node[i].distance[j] > costMatrix[i][k] + node[k].distance[j])
                 {
                     // substitute with minimum distance
                     node[i].distance[j] = node[i].distance[k] + node[k].distance[j];
+                    // substitute with minimum path
                     node[i].adjNodes[j] = k;
                 }
             }
