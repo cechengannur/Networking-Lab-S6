@@ -6,6 +6,8 @@
 #include<stdlib.h>
 #include<string.h>
 #include<unistd.h>
+#include <arpa/inet.h>
+
 #define SERV_TCP_PORT 5035
 #define MAX 60
 int main(int arg,char*argv[])
