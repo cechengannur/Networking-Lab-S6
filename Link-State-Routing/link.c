@@ -149,21 +149,7 @@ void print_route(int _i, int _l)
         print_route(prev[_i], _l);
     }
 }
-// int search(_i)
-// {
-//     int i = 0;
-//     while (arr[i] != -1)
-//     {
-//         if (_i == arr[i])
-//             break;
-//         else
-//             i++;
-//     }
-//     if (arr[i] == -1)
-//         return 0;
-//     else
-//         return 1;
-// }
+
 
 int search(int _i)
 {
