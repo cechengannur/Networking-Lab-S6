@@ -204,4 +204,4 @@ int length_of(int _arr[])
 // 0->1 [ distance = 5]
 // 0->2 [ distance = 8]
 // 0->1 ->3 [ distance = 7]
-///for graph in image https://www.freecodecamp.org/news/content/images/2020/06/image-123.png
+// image for input graph https://www.freecodecamp.org/news/content/images/2020/06/image-126.png
