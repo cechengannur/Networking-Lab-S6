@@ -17,4 +17,4 @@
  - [File Transfer Protocol](./File%20Transfer%20Protocol/)
  - [Distance Vector Routing Protocol](./Distance-Vector-Routing/)
  - [Leaky Bucket Algorithm](./Leaky-Bucket/)
- - [Link State Routing](./Link-State-Routing/)
+ - [Link State Routing (Djikstra's Algorithm)](./Link-State-Routing/)
