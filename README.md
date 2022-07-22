@@ -16,4 +16,5 @@
  - [Simple Mail Transfer Protocol](./SMTP/)
  - [File Transfer Protocol](./File%20Transfer%20Protocol/)
  - [Distance Vector Routing Protocol](./Distance-Vector-Routing/)
- - [Leaky Bucket Algorithm](./File%20Transfer%20Protocol/)
+ - [Leaky Bucket Algorithm](./Leaky-Bucket/)
+ - [Link State Routing](./Link-State-Routing/)
