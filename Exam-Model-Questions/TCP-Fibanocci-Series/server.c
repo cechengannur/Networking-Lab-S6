@@ -5,8 +5,7 @@
 #include<netdb.h>
 #include<unistd.h>
 
-int isPrime(int n);
-
+void finfFibanocci(int numrecieved,char fib[]);
 
 int main()
 {
@@ -78,104 +77,7 @@ void finfFibanocci(int numrecieved,char fib[])
         char str[10];
         sprintf(str, "%d", next);
         //concatenating the string to the fib string
-        strncat(fib, str, 10);
-        strncat(fib, " ", 1);
+        strcat(fib, str);
+        strcat(fib, " ");
     }
 }
-
-int isPrime(int n)
-{
-    int i;
-    for(i=2;i<=n/2;i++)
-    {
-        if(n%i==0)
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-//function to check whether the number is amstrong or not
-int isAmstrong(int n)
-{
-    int temp,rem,sum=0;
-    temp=n;
-    while(temp!=0)
-    {
-        rem=temp%10;
-        sum=sum+rem*rem*rem;
-        temp=temp/10;
-    }
-    if(sum==n)
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-//function to check whether the number is palindrome or not
-int isPalindrome(int n)
-{
-    int temp,rem,sum=0;
-    temp=n;
-    while(temp!=0)
-    {
-        rem=temp%10;
-        sum=sum*10+rem;
-        temp=temp/10;
-    }
-    if(sum==n)
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-//srtring palindrome
-int isStringPalindrome(char str[])
-{
-    int i,j;
-    for(i=0,j=strlen(str)-1;i<j;i++,j--)
-    {
-        if(str[i]!=str[j])
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-
-//fibanocci series
-int fibanocci(int n)
-{
-    int a=0,b=1,c,i;
-    if(n==1)
-    {
-        printf("%d",a);
-    }
-    else if(n==2)
-    {
-        printf("%d %d",a,b);
-    }
-    else
-    {
-        printf("%d %d",a,b);
-        for(i=3;i<=n;i++)
-        {
-            c=a+b;
-            printf(" %d",c);
-            a=b;
-            b=c;
-        }
-    }
-}
-
-
