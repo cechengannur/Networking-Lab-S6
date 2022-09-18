@@ -76,3 +76,59 @@ Step 11: Print the after outgoing packets left out of the bucket buffer size and
 Step 12: Subtract 1 from n
 Step 13: End while
 Step 14: End program
+
+
+Algorithm - STOP AND WAIT
+
+Step 1: Start the program
+Step 2: import all the necessary libraries
+Step 3: Create 2 Application client and server
+Step 4: Connect both Application using socket
+Step 5: Sender frame is sent to the receiver and displayed by the receiver
+Step 6: Receiver sends the acknowledgement to the sender if the frame is received else negative acknowledgement is sent
+Step 7: Sender waits for the acknowledgement from the receiver
+Step 8: If the acknowledgement is received then the sender sends the next frame
+Step 9: If the negative acknowledgement is received then the sender sends the same frame again
+Step 10: End program
+
+
+Algorithm - Time Server Application - UDP
+
+Server side
+Step 1: Start the program
+Step 2: create a socket with the help of socket() function
+Step 3: bind the socket to the address and port number using the bind() function
+Step 4: listen for the incoming requests using the listen() function
+Step 5: receive request from the client using the recvfrom() function
+Step 6: send the current time to the client using the sendto() function
+Step 7: close the socket
+
+Client side
+Step 1: Start the program
+Step 2: Send a request to the server asking for the current time
+Step 3: Receive the current time from the server using the recvfrom() function
+Step 4: Display the current time on the screen
+Step 5: close the socket
+
+
+
+Algorithm - FTP
+
+Server side
+Step 1: Start the program
+Step 2: create a socket with the help of socket() function
+Step 3: bind the socket to the address and port number using the bind() function
+Step 4: listen for the incoming requests using the listen() function and accept the incoming request
+Step 5: receive ffile name from the client using the recvfrom() function
+Step 6: if the file exists then read the file and send it to the client using the sendto() function
+Step 7: else send the error message to the client
+Step 8: close the socket
+
+Client side
+Step 1: Start the program
+Step 2: create a socket with the help of socket() function
+Step 3: Send the file name to the server using the sendto() function
+Step 4: Receive the file from the server using the recvfrom() function
+Step 5: Display the file on the screen
+Step 6: close the socket
+
